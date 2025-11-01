@@ -35,16 +35,22 @@ async function initializeClient() {
     return;
   }
 
-  geminiClient = new GeminiClient(secure1PSID, secure1PSIDTS);
-  
-  await geminiClient.init({
-    timeout: 300000,
-    autoRefresh: true,
-    refreshInterval: 60000, // 1 minute
-    verbose: true
-  });
+  try {
+    geminiClient = new GeminiClient(secure1PSID, secure1PSIDTS);
+    
+    await geminiClient.init({
+      timeout: 300000,
+      autoRefresh: true,
+      refreshInterval: 60000, // 1 minute
+      verbose: true
+    });
 
-  console.log('✓ Global Gemini client initialized successfully');
+    console.log('✓ Global Gemini client initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize global client:', error.message);
+    console.warn('Server will run in multi-user mode only (cookies required in payload)');
+    geminiClient = null; // Reset to null on failure
+  }
 }
 
 /**
@@ -64,14 +70,37 @@ async function createUserClient(secure1PSID, secure1PSIDTS) {
 }
 
 /**
+ * Normalize cookie keys to lowercase (handle both SECURE_1PSID and secure1PSID)
+ * @param {Object} cookies - Cookies object
+ * @returns {Object} Normalized cookies
+ */
+function normalizeCookies(cookies) {
+  if (!cookies) return null;
+  
+  const normalized = {};
+  for (const [key, value] of Object.entries(cookies)) {
+    const lowerKey = key.toLowerCase().replace(/_/g, '').replace('secure', 'secure');
+    if (lowerKey.includes('secure1psid') && !lowerKey.includes('ts')) {
+      normalized.secure1PSID = value;
+    } else if (lowerKey.includes('secure1psidts')) {
+      normalized.secure1PSIDTS = value;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+/**
  * Get client instance - either from custom cookies or global default
- * @param {Object} cookies - Optional custom cookies { secure1PSID, secure1PSIDTS }
+ * @param {Object} cookies - Optional custom cookies { secure1PSID, secure1PSIDTS } or { SECURE_1PSID, SECURE_1PSIDTS }
  * @returns {Promise<{client: GeminiClient, isTemporary: boolean}>}
  */
 async function getClientInstance(cookies = null) {
-  if (cookies && cookies.secure1PSID) {
+  // Normalize cookie keys to handle both uppercase and lowercase
+  const normalizedCookies = normalizeCookies(cookies);
+  
+  if (normalizedCookies && normalizedCookies.secure1PSID) {
     // Create temporary client with user's cookies
-    const client = await createUserClient(cookies.secure1PSID, cookies.secure1PSIDTS);
+    const client = await createUserClient(normalizedCookies.secure1PSID, normalizedCookies.secure1PSIDTS);
     return { client, isTemporary: true };
   }
   
@@ -79,14 +108,14 @@ async function getClientInstance(cookies = null) {
   if (!geminiClient) {
     const secure1PSID = process.env.SECURE_1PSID;
     if (!secure1PSID) {
-      throw new Error('Client not initialized. Call init() first.');
+      throw new Error('No cookies provided. Please include cookies in request payload: { "cookies": { "secure1PSID": "your-cookie-here", "secure1PSIDTS": "your-cookie-here" } }');
     }
     
     console.log('[Lazy Init] Initializing global client...');
     await initializeClient();
     
     if (!geminiClient) {
-      throw new Error('Failed to initialize global client');
+      throw new Error('Failed to initialize global client. Please provide valid cookies in request payload.');
     }
   }
   
