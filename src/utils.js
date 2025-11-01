@@ -11,6 +11,13 @@ import { Endpoints, Headers } from './constants.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Use /tmp for serverless environments (Vercel, AWS Lambda), otherwise use local temp
+const getTempDir = () => {
+    // Check if running in serverless environment
+    const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT;
+    return isServerless ? '/tmp' : path.join(__dirname, 'temp');
+};
+
 /**
  * Rotate/refresh the __Secure-1PSIDTS cookie
  * This prevents cookie expiration by refreshing it periodically
@@ -20,7 +27,7 @@ const __dirname = path.dirname(__filename);
  * @returns {Promise<string|null>} New __Secure-1PSIDTS value or null
  */
 export async function rotate1PSIDTS(cookies, proxy = null) {
-    const cacheDir = path.join(__dirname, 'temp');
+    const cacheDir = getTempDir();
 
     // Create cache directory if it doesn't exist
     if (!fs.existsSync(cacheDir)) {
@@ -101,7 +108,7 @@ export async function rotate1PSIDTS(cookies, proxy = null) {
  */
 export async function getAccessToken(cookies, proxy = null) {
     // Try loading from cache first
-    const cacheDir = path.join(__dirname, 'temp');
+    const cacheDir = getTempDir();
     if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
     }
