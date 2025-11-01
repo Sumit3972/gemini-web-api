@@ -1,0 +1,141 @@
+{
+  "info": {
+    "name": "Gemini API Server",
+    "description": "REST API endpoints for Google Gemini Web Client",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["health"]
+        },
+        "description": "Check if the server is running"
+      }
+    },
+    {
+      "name": "Get Available Models",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/models",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "models"]
+        },
+        "description": "Get list of available Gemini models"
+      }
+    },
+    {
+      "name": "Generate Content",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"Explain quantum computing in simple terms\",\n  \"model\": \"gemini-2.0-flash-exp\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/generate",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "generate"]
+        },
+        "description": "Generate content from a single prompt"
+      }
+    },
+    {
+      "name": "Start Chat Session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"model\": \"gemini-2.0-flash-exp\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/chat/start",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "chat", "start"]
+        },
+        "description": "Start a new chat session and get a chatId"
+      }
+    },
+    {
+      "name": "Send Chat Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chatId\": \"chat_1234567890_abc123def\",\n  \"message\": \"What is the capital of France?\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/chat/message",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "chat", "message"]
+        },
+        "description": "Send a message in an existing chat session. Replace chatId with the one received from /api/chat/start"
+      }
+    },
+    {
+      "name": "Get Active Chat Sessions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/chat/sessions",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "chat", "sessions"]
+        },
+        "description": "Get list of all active chat sessions"
+      }
+    },
+    {
+      "name": "End Chat Session",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/chat/chat_1234567890_abc123def",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "chat", "chat_1234567890_abc123def"]
+        },
+        "description": "End a chat session. Replace chat_1234567890_abc123def with your actual chatId"
+      }
+    }
+  ]
+}

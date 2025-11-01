@@ -1,0 +1,11 @@
+node_modules/
+src/temp/
+*.log
+.DS_Store
+gemini-python-reference/
+
+# Environment variables
+.env
+
+# Vercel
+.vercel
