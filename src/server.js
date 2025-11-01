@@ -75,9 +75,19 @@ async function getClientInstance(cookies = null) {
     return { client, isTemporary: true };
   }
   
-  // Use global client
+  // Lazy initialization for global client (important for serverless)
   if (!geminiClient) {
-    throw new Error('No global client available and no cookies provided');
+    const secure1PSID = process.env.SECURE_1PSID;
+    if (!secure1PSID) {
+      throw new Error('Client not initialized. Call init() first.');
+    }
+    
+    console.log('[Lazy Init] Initializing global client...');
+    await initializeClient();
+    
+    if (!geminiClient) {
+      throw new Error('Failed to initialize global client');
+    }
   }
   
   return { client: geminiClient, isTemporary: false };
